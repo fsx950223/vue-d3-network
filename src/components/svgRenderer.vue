@@ -13,16 +13,32 @@
 
     //-> links
     g.links#l-links
-        path(v-for="link in links"
-          :d="linkPath(link)"
-          :id="link.id"
-          @click='emit("linkClick",[$event,link])'
-          @touchstart.passive='emit("linkClick",[$event,link])'
-          :stroke-width='linkWidth'
-          :class='linkClass(link.id)'
-          :style='linkStyle(link)'
-          v-bind='link._svgAttrs')
+      path(v-for="link in links"
+        :d="linkPath(link)"
+        :id="link.id"
+        @click='emit("linkClick",[$event,link])'
+        @touchstart.passive='emit("linkClick",[$event,link])'
+        :stroke-width='linkWidth'
+        :class='linkClass(link.id)'
+        :style='linkStyle(link)'
+        :marker-end="`url(#marker_${link.tid})`"
+        v-bind='link._svgAttrs')
 
+    g.markers#l-markers
+      marker(v-for="link in links"
+        :id="`marker_${link.tid}`"
+        markerHeight="5"
+        markerWidth="5"
+        markerUnits="strokeWidth"
+        orient="auto"
+        :refX="getRefX(link.tid)"
+        refY="0"
+        viewBox="0 -5 10 10")
+        path(
+          d="M0,-5L10,0L0,5"
+          style="fill: #f00"
+          v-bind='link._svgAttrs'
+        )      
     //- -> nodes
     g.nodes#l-nodes(v-if='!noNodes')
       template(v-for='(node,key) in nodes')
@@ -107,6 +123,10 @@ export default {
     }
   },
   methods: {
+    getRefX(tid){
+      const node=this.nodes.find(node=>node.id===tid)
+      return this.getNodeSize(node)+10
+    },
     getNodeSize (node, side) {
       let size = node._size || this.nodeSize
       if (side) size = node['_' + side] || size
