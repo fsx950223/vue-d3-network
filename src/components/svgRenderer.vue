@@ -10,8 +10,7 @@
     @touchend.passive='emit("dragEnd",[$event])'
     @touchstart.passive=''
     )
-
-    //-> links
+    
     g.links#l-links
       path(v-for="link in links"
         :d="linkPath(link)"
@@ -93,7 +92,10 @@
 </template>
 <script>
 import svgExport from '../lib/js/svgExport.js'
-
+import * as d3Selection from 'd3-selection'
+import * as d3Zoom from 'd3-zoom'
+import {event as currentEvent} from 'd3-selection';
+const d3 = Object.assign({}, d3Selection,d3Zoom)
 export default {
   name: 'svg-renderer',
   props: [
@@ -113,7 +115,13 @@ export default {
     'labelOffset',
     'nodeSym'
   ],
-
+  mounted(){
+      const zoom=d3.zoom().scaleExtent([1 / 2, 4]).on("zoom", ()=>{
+        d3.select('#l-nodes').attr('transform', currentEvent.transform)
+        d3.select('#l-links').attr('transform', currentEvent.transform)
+      })
+      d3.select(this.$refs.svg).call(zoom).on('wheel', () => currentEvent.preventDefault());
+  },
   computed: {
     nodeSvg () {
       if (this.nodeSym) {
