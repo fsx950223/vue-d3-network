@@ -116,11 +116,11 @@ export default {
     'nodeSym'
   ],
   mounted(){
-      const zoom=d3.zoom().scaleExtent([1 / 2, 4]).on("zoom", ()=>{
+      const zoom=d3.zoom().scaleExtent([1 / 2, 4]).on('zoom', ()=>{
         for(const selector of ['#l-nodes','#l-links','#node-labels','#link-labels'])
           d3.select(selector).attr('transform', currentEvent.transform)
       })
-      d3.select(this.$refs.svg).call(zoom).on('wheel', () => currentEvent.preventDefault());
+      d3.select(this.$refs.svg).call(zoom).on('wheel', () => currentEvent.preventDefault()).on('contextmenu', () => currentEvent.preventDefault())
   },
   computed: {
     nodeSvg () {
