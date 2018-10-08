@@ -117,8 +117,8 @@ export default {
   ],
   mounted(){
       const zoom=d3.zoom().scaleExtent([1 / 2, 4]).on("zoom", ()=>{
-        d3.select('#l-nodes').attr('transform', currentEvent.transform)
-        d3.select('#l-links').attr('transform', currentEvent.transform)
+        for(const selector of ['#l-nodes','#l-links','#node-labels','#link-labels'])
+          d3.select(selector).attr('transform', currentEvent.transform)
       })
       d3.select(this.$refs.svg).call(zoom).on('wheel', () => currentEvent.preventDefault());
   },
