@@ -149,7 +149,7 @@ export default {
     } else {
       this.resizeListener = true
     }
-    // if (this.resizeListener) window.addEventListener('resize', this.onResize)
+    if (this.resizeListener) window.addEventListener('resize', this.onResize)
   },
   beforeDestroy () {
     window.removeEventListener('resize', this.onResize)
