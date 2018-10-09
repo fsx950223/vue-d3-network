@@ -144,12 +144,12 @@ export default {
     this.$nextTick(() => {
       this.animate()
     })
-    if(this.options.size) {
-      this.resizeListener=false
-    }else{
-      this.resizeListener=true
+    if (this.options.size) {
+      this.resizeListener = false
+    } else {
+      this.resizeListener = true
     }
-    //if (this.resizeListener) window.addEventListener('resize', this.onResize)
+    // if (this.resizeListener) window.addEventListener('resize', this.onResize)
   },
   beforeDestroy () {
     window.removeEventListener('resize', this.onResize)
@@ -195,9 +195,9 @@ export default {
       }
       this.animate()
     },
-    resizeListener(val){
+    resizeListener (val) {
       window.removeEventListener('resize', this.onResize)
-      if(val) window.addEventListener('resize', this.onResize)
+      if (val) window.addEventListener('resize', this.onResize)
     }
   },
   methods: {

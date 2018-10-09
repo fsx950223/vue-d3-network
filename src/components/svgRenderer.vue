@@ -10,7 +10,7 @@
     @touchend.passive='emit("dragEnd",[$event])'
     @touchstart.passive=''
     )
-    
+
     g.links#l-links
       path(v-for="link in links"
         :d="linkPath(link)"
@@ -37,7 +37,7 @@
           d="M0,-5L10,0L0,5"
           style="fill: #f00"
           v-bind='link._svgAttrs'
-        )      
+        )
     //- -> nodes
     g.nodes#l-nodes(v-if='!noNodes')
       template(v-for='(node,key) in nodes')
@@ -91,11 +91,12 @@
       ) {{ node.name }}
 </template>
 <script>
+/* eslint import/no-duplicates: "warn" */
 import svgExport from '../lib/js/svgExport.js'
 import * as d3Selection from 'd3-selection'
 import * as d3Zoom from 'd3-zoom'
-import {event as currentEvent} from 'd3-selection';
-const d3 = Object.assign({}, d3Selection,d3Zoom)
+import { event as currentEvent } from 'd3-selection'
+const d3 = Object.assign({}, d3Selection, d3Zoom)
 export default {
   name: 'svg-renderer',
   props: [
@@ -115,12 +116,11 @@ export default {
     'labelOffset',
     'nodeSym'
   ],
-  mounted(){
-      const zoom=d3.zoom().scaleExtent([1 / 2, 4]).on('zoom', ()=>{
-        for(const selector of ['#l-nodes','#l-links','#node-labels','#link-labels'])
-          d3.select(selector).attr('transform', currentEvent.transform)
-      })
-      d3.select(this.$refs.svg).call(zoom).on('wheel', () => currentEvent.preventDefault()).on('contextmenu', () => currentEvent.preventDefault())
+  mounted () {
+    const zoom = d3.zoom().scaleExtent([1 / 2, 4]).on('zoom', () => {
+      for (const selector of ['#l-nodes', '#l-links', '#node-labels', '#link-labels']) { d3.select(selector).attr('transform', currentEvent.transform) }
+    })
+    d3.select(this.$refs.svg).call(zoom).on('wheel', () => currentEvent.preventDefault()).on('contextmenu', () => currentEvent.preventDefault())
   },
   computed: {
     nodeSvg () {
@@ -131,9 +131,9 @@ export default {
     }
   },
   methods: {
-    getRefX(tid){
-      const node=this.nodes.find(node=>node.id===tid)
-      return this.getNodeSize(node)+10
+    getRefX (tid) {
+      const node = this.nodes.find(node => node.id === tid)
+      return this.getNodeSize(node) + 10
     },
     getNodeSize (node, side) {
       let size = node._size || this.nodeSize
