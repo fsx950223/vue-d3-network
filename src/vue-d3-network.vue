@@ -433,7 +433,10 @@ export default {
   .link
     stroke alpha($dark, 0.3)
 
-  .node, .link
+  .marker
+    fill alpha($dark, 1)
+
+  .node, .link .marker
     stroke-linecap round
 
     &:hover
@@ -441,6 +444,9 @@ export default {
       stroke-width 5px
 
   .link.selected
+    stroke alpha($color2, 0.6)
+
+  .marker.selected
     stroke alpha($color2, 0.6)
 
   .curve

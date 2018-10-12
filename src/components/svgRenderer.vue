@@ -35,7 +35,8 @@
         viewBox="0 -5 10 10")
         path(
           d="M0,-5L10,0L0,5"
-          style="fill: #f00"
+          :style="markerStyle(link)"
+          :class='markerClass(link.id)'
           v-bind='link._svgAttrs'
         )
     //- -> nodes
@@ -169,6 +170,16 @@ export default {
       }
       return cssClass
     },
+    markerClass (linkId) {
+      let cssClass = ['marker']
+      if (this.linksSelected.hasOwnProperty(linkId)) {
+        cssClass.push('selected')
+      }
+      // if (!this.strLinks) {
+      //   cssClass.push('curve')
+      // }
+      return cssClass
+    },
     linkPath (link) {
       let d = {
         M: [link.source.x | 0, link.source.y | 0],
@@ -180,6 +191,9 @@ export default {
         d.Q = [link.source.x, link.target.y]
         return 'M ' + d.M + ' Q ' + d.Q.join(' ') + ' ' + d.X
       }
+    },
+    markerStyle (link) {
+      return (link._markerColor) ? 'fill: ' + link._markerColor : ''
     },
     nodeStyle (node) {
       return (node._color) ? 'fill: ' + node._color : ''
