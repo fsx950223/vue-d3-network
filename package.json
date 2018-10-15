@@ -1,5 +1,5 @@
 {
-  "name": "vue-d3-network",
+  "name": "@fsx950223/vue-d3-network",
   "version": "0.1.26",
   "description": "Vue component to graph networks using d3-force",
   "main": "dist/vue-d3-network.umd.js",
@@ -11,14 +11,14 @@
     "lint": "vue-cli-service lint",
     "clean-dist": "rm dist/demo.html"
   },
-  "author": "emi",
+  "author": "fsx950223",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/emiliorizzo/vue-d3-network"
+    "url": "https://github.com/fsx950223/vue-d3-network"
   },
   "bugs": {
-    "url": "https://github.com/emiliorizzo/vue-d3-network/issues"
+    "url": "https://github.com/fsx950223/vue-d3-network/issues"
   },
   "keywords": [
     "vue",

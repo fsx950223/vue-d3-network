@@ -124,7 +124,7 @@ export default {
       for (const selector of ['#l-nodes', '#l-links', '#node-labels', '#link-labels']) { d3.select(selector).attr('transform', currentEvent.transform) }
     })
     this.selection = d3.select(this.$refs.svg)
-    this.selection.call(this.zoom).on('dblclick.zoom',null)
+    this.selection.call(this.zoom).on('dblclick.zoom', null)
   },
   computed: {
     nodeSvg () {
@@ -136,27 +136,21 @@ export default {
   },
   watch: {
     dragging (val) {
-      val ? this.selection.on('.zoom', null) : this.selection.call(this.zoom).on('dblclick.zoom',null)
+      val ? this.selection.on('.zoom', null) : this.selection.call(this.zoom).on('dblclick.zoom', null)
     }
   },
   methods: {
-    nodeClick(node){
-      //this.clickTimer=setTimeout(()=>{
-        this.emit("nodeClick",[event,node]);
-        this.pinNode(node);
-      //},300)
+    nodeClick (node) {
+      this.emit('nodeClick', [event, node])
+      this.pinNode(node)
     },
-    nodePointerDown(key){
-      //this.pointerTimerDown=setTimeout(()=>{
-        this.emit("dragStart",[event,key]);
-        this.dragging=true;
-     // },300)
+    nodePointerDown (key) {
+      this.emit('dragStart', [event, key])
+      this.dragging = true
     },
-    nodePointerUp(){
-      //this.pointerTimerUp=setTimeout(()=>{
-        this.emit("dragEnd",[event]);
-        this.dragging=false
-      //})
+    nodePointerUp () {
+      this.emit('dragEnd', [event])
+      this.dragging = false
     },
     pinNode (node) {
       node.pinned = true
@@ -164,9 +158,6 @@ export default {
       node.fy = node.y
     },
     unPinNode (node) {
-      // clearTimeout(this.clickTimer)
-      // clearTimeout(this.pointerTimerDown)
-      // clearTimeout(this.pointerTimerUp)
       node.pinned = false
       node.fx = null
       node.fy = null
