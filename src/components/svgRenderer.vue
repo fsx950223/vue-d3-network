@@ -6,9 +6,9 @@
     :width="size.w"
     :height="size.h"
     class="net-svg"
-    @mouseup='emit("dragEnd",[$event])'
-    @touchend.passive='emit("dragEnd",[$event])'
-    @touchstart.passive=''
+    @pointerup='emit("dragEnd",[$event]),draging=false'
+    @wheel.prevent
+    @contextmenu.prevent
     )
 
     g.links#l-links
@@ -16,7 +16,6 @@
         :d="linkPath(link)"
         :id="link.id"
         @click='emit("linkClick",[$event,link])'
-        @touchstart.passive='emit("linkClick",[$event,link])'
         :stroke-width='linkWidth'
         :class='linkClass(link.id)'
         :style='linkStyle(link)'
@@ -48,9 +47,7 @@
           :width='getNodeSize(node, "width")'
           :height='getNodeSize(node, "height")'
           @click='emit("nodeClick",[$event,node])'
-          @touchend.passive='emit("nodeClick",[$event,node])'
-          @mousedown.prevent='emit("dragStart",[$event,key])'
-          @touchstart.prevent='emit("dragStart",[$event,key])'
+          @pointerdown.prevent='emit("dragStart",[$event,key],draging=true)'
           :x='node.x - getNodeSize(node, "width") / 2'
           :y='node.y - getNodeSize(node, "height") / 2'
           :style='nodeStyle(node)'
@@ -65,9 +62,7 @@
         :key='key'
         :r="getNodeSize(node) / 2"
         @click='emit("nodeClick",[$event,node])'
-        @touchend.passive='emit("nodeClick",[$event,node])'
-        @mousedown.prevent='emit("dragStart",[$event,key])'
-        @touchstart.prevent='emit("dragStart",[$event,key])'
+        @pointerdown.prevent='emit("dragStart",[$event,key]),draging=true'
         :cx="node.x"
         :cy="node.y"
         :style='nodeStyle(node)'
@@ -117,11 +112,17 @@ export default {
     'labelOffset',
     'nodeSym'
   ],
+  data(){
+    return {
+      draging:false
+    }
+  },
   mounted () {
-    const zoom = d3.zoom().scaleExtent([1 / 2, 4]).on('zoom', () => {
+    this.zoom = d3.zoom().scaleExtent([1 / 2, 4]).on('zoom', () => {
       for (const selector of ['#l-nodes', '#l-links', '#node-labels', '#link-labels']) { d3.select(selector).attr('transform', currentEvent.transform) }
     })
-    d3.select(this.$refs.svg).call(zoom).on('wheel', () => currentEvent.preventDefault()).on('contextmenu', () => currentEvent.preventDefault())
+    this.selection=d3.select(this.$refs.svg)
+    this.selection.call(this.zoom)
   },
   computed: {
     nodeSvg () {
@@ -129,6 +130,11 @@ export default {
         return svgExport.toObject(this.nodeSym)
       }
       return null
+    }
+  },
+  watch:{
+    draging(val){
+      val?this.selection.on('.zoom',null):this.selection.call(this.zoom);
     }
   },
   methods: {
