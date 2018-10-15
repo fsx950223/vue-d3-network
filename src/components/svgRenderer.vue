@@ -6,7 +6,7 @@
     :width="size.w"
     :height="size.h"
     class="net-svg"
-    @pointerup='emit("dragEnd",[$event]),draging=false'
+    @pointerup='nodePointerUp'
     @wheel.prevent
     @contextmenu.prevent
     )
@@ -46,8 +46,9 @@
           :viewBox='svgIcon(node).attrs.viewBox'
           :width='getNodeSize(node, "width")'
           :height='getNodeSize(node, "height")'
-          @click='emit("nodeClick",[$event,node])'
-          @pointerdown.prevent='emit("dragStart",[$event,key],draging=true)'
+          @click='nodeClick(node)'
+          @pointerdown.prevent='nodePointerDown(key)'
+          @dblclick='unPinNode(node)'
           :x='node.x - getNodeSize(node, "width") / 2'
           :y='node.y - getNodeSize(node, "height") / 2'
           :style='nodeStyle(node)'
@@ -61,8 +62,9 @@
         circle(v-else
         :key='key'
         :r="getNodeSize(node) / 2"
-        @click='emit("nodeClick",[$event,node])'
-        @pointerdown.prevent='emit("dragStart",[$event,key]),draging=true'
+        @click='nodeClick(node)'
+        @pointerdown.prevent='nodePointerDown(key)'
+        @dblclick='unPinNode(node)'
         :cx="node.x"
         :cy="node.y"
         :style='nodeStyle(node)'
@@ -112,17 +114,17 @@ export default {
     'labelOffset',
     'nodeSym'
   ],
-  data(){
+  data () {
     return {
-      draging:false
+      dragging: false
     }
   },
   mounted () {
     this.zoom = d3.zoom().scaleExtent([1 / 2, 4]).on('zoom', () => {
       for (const selector of ['#l-nodes', '#l-links', '#node-labels', '#link-labels']) { d3.select(selector).attr('transform', currentEvent.transform) }
     })
-    this.selection=d3.select(this.$refs.svg)
-    this.selection.call(this.zoom)
+    this.selection = d3.select(this.$refs.svg)
+    this.selection.call(this.zoom).on('dblclick.zoom',null)
   },
   computed: {
     nodeSvg () {
@@ -132,12 +134,43 @@ export default {
       return null
     }
   },
-  watch:{
-    draging(val){
-      val?this.selection.on('.zoom',null):this.selection.call(this.zoom);
+  watch: {
+    dragging (val) {
+      val ? this.selection.on('.zoom', null) : this.selection.call(this.zoom).on('dblclick.zoom',null)
     }
   },
   methods: {
+    nodeClick(node){
+      //this.clickTimer=setTimeout(()=>{
+        this.emit("nodeClick",[event,node]);
+        this.pinNode(node);
+      //},300)
+    },
+    nodePointerDown(key){
+      //this.pointerTimerDown=setTimeout(()=>{
+        this.emit("dragStart",[event,key]);
+        this.dragging=true;
+     // },300)
+    },
+    nodePointerUp(){
+      //this.pointerTimerUp=setTimeout(()=>{
+        this.emit("dragEnd",[event]);
+        this.dragging=false
+      //})
+    },
+    pinNode (node) {
+      node.pinned = true
+      node.fx = node.x
+      node.fy = node.y
+    },
+    unPinNode (node) {
+      // clearTimeout(this.clickTimer)
+      // clearTimeout(this.pointerTimerDown)
+      // clearTimeout(this.pointerTimerUp)
+      node.pinned = false
+      node.fx = null
+      node.fy = null
+    },
     getRefX (tid) {
       const node = this.nodes.find(node => node.id === tid)
       return this.getNodeSize(node) + 10
@@ -181,9 +214,6 @@ export default {
       if (this.linksSelected.hasOwnProperty(linkId)) {
         cssClass.push('selected')
       }
-      // if (!this.strLinks) {
-      //   cssClass.push('curve')
-      // }
       return cssClass
     },
     linkPath (link) {
