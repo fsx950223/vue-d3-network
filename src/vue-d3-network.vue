@@ -128,7 +128,7 @@ export default {
 
     return createElement('div', {
       attrs: { class: 'net' },
-      on: { 'mousemove': this.move, '&touchmove': this.move }
+      on: { 'pointermove': this.move}
     }, [createElement(renderer, {
       props, ref, on: { action: this.methodCall }
     })])
@@ -364,7 +364,7 @@ export default {
         node.fx = null
         node.fy = null
       }
-      this.dragStart(false)
+      this.dragStart(undefined,false)
     },
     // -- Render helpers
     nodeClick (event, node) {
