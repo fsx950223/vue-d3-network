@@ -7,8 +7,9 @@ import svgExport from './lib/js/svgExport.js'
 import debounce from 'lodash.debounce'
 const d3 = Object.assign({}, forceSimulation)
 function reset () {
-  this.simulation.nodes(this.nodes)
+  this.simulation.stop().alpha(1).nodes(this.nodes)
   if (this.forces.Link) this.simulation.force('link').links(this.links)
+  this.simulation.restart()
 }
 const resetDebounced = debounce(reset, 150)
 export default {
@@ -58,8 +59,8 @@ export default {
       nodes: [],
       links: [],
       size: {
-        w: 500,
-        h: 500
+        w: 0,
+        h: 0
       },
       offset: {
         x: 0,
@@ -121,7 +122,11 @@ export default {
     ]
 
     for (let prop of bindProps) {
+      // if(['nodes','links','selected','linksSelected'].includes(prop)){
+      //   props[prop] =JSON.parse(JSON.stringify(this[prop]))
+      // }else{
       props[prop] = this[prop]
+      // }
     }
     props.nodeSym = this.nodeSvg
 
@@ -139,9 +144,9 @@ export default {
     })])
   },
   created () {
-    this.updateOptions(this.options)
+    this.updateOptions(this.$data, this.options)
     this.buildNodes(this.netNodes)
-    this.links = this.buildLinks(this.netLinks)
+    this.buildLinks(this.netLinks)
     this.updateNodeSvg()
   },
   mounted () {
@@ -149,11 +154,7 @@ export default {
     this.$nextTick(() => {
       this.animate()
     })
-    if (this.options.size) {
-      this.resizeListener = false
-    } else {
-      this.resizeListener = true
-    }
+    this.resizeListener = !this.options.size
     if (this.resizeListener) window.addEventListener('resize', this.onResize)
   },
   beforeDestroy () {
@@ -184,15 +185,15 @@ export default {
       this.buildNodes(newValue)
       resetDebounced.call(this)
     },
-    netLinks (newValue, oldValue) {
-      this.links = this.buildLinks(newValue)
+    netLinks (newValue) {
+      this.buildLinks(newValue)
       resetDebounced.call(this)
     },
     nodeSym () {
       this.updateNodeSvg()
     },
     options (newValue, oldValue) {
-      this.updateOptions(newValue)
+      this.updateOptions(this.$data, newValue)
       if (oldValue.size && newValue.size) {
         if ((oldValue.size.w !== newValue.size.w) || (oldValue.size.h !== newValue.size.h)) {
           this.onResize()
@@ -236,44 +237,50 @@ export default {
       this.animate()
     },
     // -- Data
-    updateOptions (options) {
+    updateOptions (source, options) {
       for (let op in options) {
-        if (this.hasOwnProperty(op)) {
-          this[op] = options[op]
+        if (source.hasOwnProperty(op)) {
+          if (typeof source[op] === 'object') {
+            this.updateOptions(source[op], options[op])
+          } else {
+            source[op] = options[op]
+          }
         }
       }
     },
     buildNodes (nodes) {
-      let vm = this
+      // let vm = this
       this.nodes = nodes.map((node, index) => {
         // node formatter option
         node = this.itemCb(this.nodeCb, node)
         // index as default node id
-        if (!node.id && node.id !== 0) vm.$set(node, 'id', index)
+        if (!node.id && node.id !== 0) this.$set(node, 'id', index)
         // initialize node coords
-        if (!node.x) vm.$set(node, 'x', 0)
-        if (!node.y) vm.$set(node, 'y', 0)
+        if (!node.x) this.$set(node, 'x', 0)
+        if (!node.y) this.$set(node, 'y', 0)
         // node default name, allow string 0 as name
-        if (!node.name && node.name !== '0') vm.$set(node, 'name', 'node ' + node.id)
+        if (!node.name && node.name !== '0') this.$set(node, 'name', 'node ' + node.id)
         if (node.svgSym) {
           node.svgIcon = svgExport.svgElFromString(node.svgSym)
           if (!this.canvas && node.svgIcon && !node.svgObj) node.svgObj = svgExport.toObject(node.svgIcon)
         }
         return node
       })
+      this.$emit('update:netNodes', this.nodes)
     },
 
     buildLinks (links) {
-      let vm = this
-      return links.concat().map((link, index) => {
+      // let vm = this
+      this.links = links.map((link, index) => {
         // link formatter option
         link = this.itemCb(this.linkCb, link)
         // source and target for d3
         link.source = link.sid
         link.target = link.tid
-        if (!link.id) vm.$set(link, 'id', 'link-' + index)
+        if (!link.id) this.$set(link, 'id', 'link-' + index)
         return link
       })
+      this.$emit('update:netLinks', this.links)
     },
     itemCb (cb, item) {
       if (cb && typeof (cb) === 'function') item = cb(item)
@@ -348,6 +355,7 @@ export default {
       return { x, y }
     },
     dragStart (event, nodeKey) {
+      this.simulation.stop()
       this.dragging = (nodeKey === false) ? false : nodeKey
       this.setMouseOffset(event, this.nodes[nodeKey])
       if (this.dragging === false) {
