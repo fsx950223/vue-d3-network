@@ -4,8 +4,13 @@ import svgRenderer from './components/svgRenderer.vue'
 import canvasRenderer from './components/canvasRenderer.vue'
 import saveImage from './lib/js/saveImage.js'
 import svgExport from './lib/js/svgExport.js'
+import debounce from 'lodash.debounce'
 const d3 = Object.assign({}, forceSimulation)
-
+function reset () {
+  this.nodes = this.simulation.nodes()
+  if (this.forces.Link) this.links = this.simulation.force('link').links()
+}
+const resetDebounced = debounce(reset, 150)
 export default {
   name: 'd3-network',
   components: {
@@ -177,11 +182,11 @@ export default {
   watch: {
     netNodes (newValue) {
       this.buildNodes(newValue)
-      this.reset()
+      resetDebounced.call(this)
     },
     netLinks (newValue, oldValue) {
       this.links = this.buildLinks(newValue)
-      this.reset()
+      resetDebounced.call(this)
     },
     nodeSym () {
       this.updateNodeSvg()
@@ -323,11 +328,6 @@ export default {
       if (this.forces.Link !== false) this.simulation = this.simulate(this.nodes, this.links)
       else this.simulation = this.simulate(this.nodes)
       this.simulation.restart()
-    },
-    reset () {
-      this.animate()
-      this.nodes = this.simulation.nodes()
-      if (this.forces.links) this.links = this.simulation.force('link').links()
     },
     // -- Mouse Interaction
     move (event) {
