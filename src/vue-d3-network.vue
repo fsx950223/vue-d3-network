@@ -7,8 +7,8 @@ import svgExport from './lib/js/svgExport.js'
 import debounce from 'lodash.debounce'
 const d3 = Object.assign({}, forceSimulation)
 function reset () {
-  this.nodes = this.simulation.nodes()
-  if (this.forces.Link) this.links = this.simulation.force('link').links()
+  this.simulation.nodes(this.nodes)
+  if (this.forces.Link) this.simulation.force('link').links(this.links)
 }
 const resetDebounced = debounce(reset, 150)
 export default {
@@ -287,7 +287,6 @@ export default {
         .alpha(0.5)
         // .alphaMin(0.05)
         .nodes(nodes)
-
       if (forces.Center !== false) sim.force('center', d3.forceCenter(this.center.x, this.center.y))
       if (forces.X !== false) {
         sim.force('X', d3.forceX(this.center.x).strength(forces.X))
