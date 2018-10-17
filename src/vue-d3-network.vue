@@ -122,11 +122,7 @@ export default {
     ]
 
     for (let prop of bindProps) {
-      // if(['nodes','links','selected','linksSelected'].includes(prop)){
-      //   props[prop] =JSON.parse(JSON.stringify(this[prop]))
-      // }else{
       props[prop] = this[prop]
-      // }
     }
     props.nodeSym = this.nodeSvg
 
@@ -249,7 +245,9 @@ export default {
       }
     },
     buildNodes (nodes) {
-      // let vm = this
+      if (JSON.stringify(nodes) === JSON.stringify(this.nodes)) {
+        return
+      }
       this.nodes = nodes.map((node, index) => {
         // node formatter option
         node = this.itemCb(this.nodeCb, node)
@@ -270,7 +268,9 @@ export default {
     },
 
     buildLinks (links) {
-      // let vm = this
+      if (JSON.stringify(links) === JSON.stringify(this.links)) {
+        return
+      }
       this.links = links.map((link, index) => {
         // link formatter option
         link = this.itemCb(this.linkCb, link)
@@ -280,7 +280,7 @@ export default {
         if (!link.id) this.$set(link, 'id', 'link-' + index)
         return link
       })
-      this.$emit('update:netLinks', this.links)
+      this.$emit('update:newLinks', this.links)
     },
     itemCb (cb, item) {
       if (cb && typeof (cb) === 'function') item = cb(item)
@@ -373,6 +373,9 @@ export default {
       }
       this.dragStart(undefined, false)
     },
+    nodePinned (event, node) {
+      this.$emit('node-pinned', event, node)
+    },
     // -- Render helpers
     nodeClick (event, node) {
       this.$emit('node-click', event, node)
@@ -435,13 +438,16 @@ export default {
     stroke $color2
 
   .node.pinned
-    stroke alpha($warn, 0.6)
+    fill alpha($warn, 1)
 
   .link
     stroke alpha($dark, 0.3)
 
   .marker
     fill alpha($dark, 1)
+
+  .marker.selected
+    fill alpha($color2, 1)
 
   .node, .link .marker
     stroke-linecap round
@@ -451,9 +457,6 @@ export default {
       stroke-width 5px
 
   .link.selected
-    stroke alpha($color2, 0.6)
-
-  .marker.selected
     stroke alpha($color2, 0.6)
 
   .curve

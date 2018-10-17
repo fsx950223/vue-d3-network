@@ -141,8 +141,13 @@ export default {
   },
   methods: {
     nodeClick (node) {
+      if (node.pinned) {
+        return
+      }
+      if (!this.selected[node.id]) {
+        this.pinNode(node)
+      }
       this.emit('nodeClick', [event, node])
-      this.pinNode(node)
     },
     nodePointerDown (key) {
       this.emit('dragStart', [event, key])
@@ -153,11 +158,13 @@ export default {
       this.dragging = false
     },
     pinNode (node) {
+      this.emit('nodePinned', [event, node])
       node.pinned = true
       node.fx = node.x
       node.fy = node.y
     },
     unPinNode (node) {
+      this.emit('nodePinned', [event, node])
       node.pinned = false
       node.fx = null
       node.fy = null
