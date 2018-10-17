@@ -152,10 +152,14 @@ export default {
     nodePointerDown (key) {
       this.emit('dragStart', [event, key])
       this.dragging = true
+      this.timer=setTimeout(()=>{
+        this.unPinNode(this.nodes[key])
+      },1000)
     },
     nodePointerUp () {
       this.emit('dragEnd', [event])
       this.dragging = false
+      clearTimeout(this.timer)
     },
     pinNode (node) {
       node.pinned = true
