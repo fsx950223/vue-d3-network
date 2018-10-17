@@ -245,9 +245,6 @@ export default {
       }
     },
     buildNodes (nodes) {
-      if (JSON.stringify(nodes) === JSON.stringify(this.nodes)) {
-        return
-      }
       this.nodes = nodes.map((node, index) => {
         // node formatter option
         node = this.itemCb(this.nodeCb, node)
@@ -264,13 +261,9 @@ export default {
         }
         return node
       })
-      this.$emit('update:netNodes', this.nodes)
     },
 
     buildLinks (links) {
-      if (JSON.stringify(links) === JSON.stringify(this.links)) {
-        return
-      }
       this.links = links.map((link, index) => {
         // link formatter option
         link = this.itemCb(this.linkCb, link)
@@ -280,7 +273,6 @@ export default {
         if (!link.id) this.$set(link, 'id', 'link-' + index)
         return link
       })
-      this.$emit('update:newLinks', this.links)
     },
     itemCb (cb, item) {
       if (cb && typeof (cb) === 'function') item = cb(item)
@@ -359,8 +351,7 @@ export default {
       this.dragging = (nodeKey === false) ? false : nodeKey
       this.setMouseOffset(event, this.nodes[nodeKey])
       if (this.dragging === false) {
-        this.simulation.alpha(0.1)
-        this.simulation.restart()
+        this.simulation.alpha(0.1).restart()
         this.setMouseOffset()
       }
     },
@@ -424,6 +415,7 @@ export default {
   .net
     height 100%
     margin 0
+    touch-action: none
 
   .net-svg
     // fill: white // background color to export as image
