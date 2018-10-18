@@ -1,11 +1,12 @@
 <script>
 import * as forceSimulation from 'd3-force'
+import * as d3Selection from 'd3-selection'
 import svgRenderer from './components/svgRenderer.vue'
 import canvasRenderer from './components/canvasRenderer.vue'
 import saveImage from './lib/js/saveImage.js'
 import svgExport from './lib/js/svgExport.js'
 import debounce from 'lodash.debounce'
-const d3 = Object.assign({}, forceSimulation)
+const d3 = Object.assign({}, forceSimulation,d3Selection)
 function reset () {
   this.simulation.stop().alpha(1).nodes(this.nodes)
   if (this.forces.Link) this.simulation.force('link').links(this.links)
@@ -76,7 +77,8 @@ export default {
         X: 0.5,
         Y: 0.5,
         ManyBody: true,
-        Link: true
+        Link: true,
+        Radial:false
       },
       noNodes: false,
       strLinks: true,
@@ -281,11 +283,10 @@ export default {
     // -- Animation
     simulate (nodes, links) {
       let forces = this.forces
-      let sim = d3.forceSimulation()
+      let sim = d3.forceSimulation(nodes)
         .stop()
         .alpha(0.5)
-        // .alphaMin(0.05)
-        .nodes(nodes)
+
       if (forces.Center !== false) sim.force('center', d3.forceCenter(this.center.x, this.center.y))
       if (forces.X !== false) {
         sim.force('X', d3.forceX(this.center.x).strength(forces.X))
@@ -297,7 +298,14 @@ export default {
         sim.force('charge', d3.forceManyBody().strength(-this.force))
       }
       if (forces.Link !== false) {
-        sim.force('link', d3.forceLink(links).id(function (d) { return d.id }))
+        const forceLink=d3.forceLink(links).id(function (d) { return d.id })
+        if(forces.Radial!==false) forceLink.strength(0)
+        sim.force('link', forceLink)
+      }
+      if(forces.Radial!==false){
+        const r=this.nodes.length*this.nodeSize/(2*Math.PI)
+        sim.force("charge", d3.forceCollide(this.nodeSize))
+        .force('radial', d3.forceRadial(r,this.center.x, this.center.y))
       }
       sim = this.setCustomForces(sim)
       sim = this.itemCb(this.simCb, sim)
@@ -363,9 +371,6 @@ export default {
         node.fy = null
       }
       this.dragStart(undefined, false)
-    },
-    nodePinned (event, node) {
-      this.$emit('node-pinned', event, node)
     },
     // -- Render helpers
     nodeClick (event, node) {

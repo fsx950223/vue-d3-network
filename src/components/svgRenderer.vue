@@ -121,7 +121,9 @@ export default {
   },
   mounted () {
     this.zoom = d3.zoom().scaleExtent([1 / 2, 4]).on('zoom', () => {
-      for (const selector of ['#l-nodes', '#l-links', '#node-labels', '#link-labels']) { d3.select(selector).attr('transform', currentEvent.transform) }
+      for (const selector of ['#l-nodes', '#l-links', '#node-labels', '#link-labels']) { 
+        d3.select(selector).attr('transform', currentEvent.transform) 
+      }
     })
     this.selection = d3.select(this.$refs.svg)
     this.selection.call(this.zoom).on('dblclick.zoom', null)
@@ -152,9 +154,9 @@ export default {
     nodePointerDown (key) {
       this.emit('dragStart', [event, key])
       this.dragging = true
-      this.timer=setTimeout(()=>{
+      this.timer = setTimeout(() => {
         this.unPinNode(this.nodes[key])
-      },1000)
+      }, 1000)
     },
     nodePointerUp () {
       this.emit('dragEnd', [event])
