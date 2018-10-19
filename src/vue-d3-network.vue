@@ -6,7 +6,7 @@ import canvasRenderer from './components/canvasRenderer.vue'
 import saveImage from './lib/js/saveImage.js'
 import svgExport from './lib/js/svgExport.js'
 import debounce from 'lodash.debounce'
-const d3 = Object.assign({}, forceSimulation,d3Selection)
+const d3 = Object.assign({}, forceSimulation, d3Selection)
 function reset () {
   this.simulation.stop().alpha(1).nodes(this.nodes)
   if (this.forces.Link) this.simulation.force('link').links(this.links)
@@ -56,6 +56,7 @@ export default {
   },
   data () {
     return {
+      moving:false,
       canvas: false,
       nodes: [],
       links: [],
@@ -78,7 +79,7 @@ export default {
         Y: 0.5,
         ManyBody: true,
         Link: true,
-        Radial:false
+        Radial: false
       },
       noNodes: false,
       strLinks: true,
@@ -120,7 +121,8 @@ export default {
       'offset',
       'padding',
       'nodeSize',
-      'noNodes'
+      'noNodes',
+      'moving'
     ]
 
     for (let prop of bindProps) {
@@ -298,14 +300,14 @@ export default {
         sim.force('charge', d3.forceManyBody().strength(-this.force))
       }
       if (forces.Link !== false) {
-        const forceLink=d3.forceLink(links).id(function (d) { return d.id })
-        if(forces.Radial!==false) forceLink.strength(0)
+        const forceLink = d3.forceLink(links).id(function (d) { return d.id })
+        if (forces.Radial !== false) forceLink.strength(0)
         sim.force('link', forceLink)
       }
-      if(forces.Radial!==false){
-        const r=this.nodes.length*this.nodeSize/(2*Math.PI)
-        sim.force("charge", d3.forceCollide(this.nodeSize))
-        .force('radial', d3.forceRadial(r,this.center.x, this.center.y))
+      if (forces.Radial !== false) {
+        const r = this.nodes.length * this.nodeSize / (2 * Math.PI)
+        sim.force('charge', d3.forceCollide(this.nodeSize))
+          .force('radial', d3.forceRadial(r, this.center.x, this.center.y))
       }
       sim = this.setCustomForces(sim)
       sim = this.itemCb(this.simCb, sim)
@@ -337,14 +339,33 @@ export default {
     },
     // -- Mouse Interaction
     move (event) {
-      let pos = this.clientPos(event)
+      const pos = this.clientPos(event)
+      let fx = 0
+      let fy = 0
       if (this.dragging !== false) {
         if (this.nodes[this.dragging]) {
+          fx = this.nodes[this.dragging].fx
+          fy = this.nodes[this.dragging].fy
           this.simulation.restart()
           this.simulation.alpha(0.5)
           this.nodes[this.dragging].fx = pos.x - this.mouseOfst.x
           this.nodes[this.dragging].fy = pos.y - this.mouseOfst.y
         }
+      }
+      if (this.calculateRadial(fx, fy) < 10) {
+        this.moving = false
+      } else {
+        this.moving = true
+      }
+    },
+    /**
+     * calculate move radial to detect whether moving
+     */
+    calculateRadial (fx, fy) {
+      if (this.dragging !== false) {
+        return Math.sqrt(Math.pow(fx - this.nodes[this.dragging].fx, 2) + Math.pow(fy - this.nodes[this.dragging].fy, 2))
+      } else {
+        return 0
       }
     },
     clientPos (event) {

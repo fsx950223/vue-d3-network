@@ -95,6 +95,7 @@ import * as d3Selection from 'd3-selection'
 import * as d3Zoom from 'd3-zoom'
 import { event as currentEvent } from 'd3-selection'
 const d3 = Object.assign({}, d3Selection, d3Zoom)
+const WAITING_TIME=1000
 export default {
   name: 'svg-renderer',
   props: [
@@ -112,7 +113,8 @@ export default {
     'nodeLabels',
     'linkLabels',
     'labelOffset',
-    'nodeSym'
+    'nodeSym',
+    'moving'
   ],
   data () {
     return {
@@ -121,8 +123,8 @@ export default {
   },
   mounted () {
     this.zoom = d3.zoom().scaleExtent([1 / 2, 4]).on('zoom', () => {
-      for (const selector of ['#l-nodes', '#l-links', '#node-labels', '#link-labels']) { 
-        d3.select(selector).attr('transform', currentEvent.transform) 
+      for (const selector of ['#l-nodes', '#l-links', '#node-labels', '#link-labels']) {
+        d3.select(selector).attr('transform', currentEvent.transform)
       }
     })
     this.selection = d3.select(this.$refs.svg)
@@ -139,10 +141,21 @@ export default {
   watch: {
     dragging (val) {
       val ? this.selection.on('.zoom', null) : this.selection.call(this.zoom).on('dblclick.zoom', null)
+    },
+    moving (val) {
+      clearTimeout(this.timer)
+      if (!val) {
+        this.timer = setTimeout(() => {
+          if(!this.moving){
+            this.unPinNode(this.nodes[this.key])
+          }
+        }, WAITING_TIME+5000)
+      }
     }
   },
   methods: {
     nodeClick (node) {
+      this.node=node
       if (node.pinned) {
         return
       }
@@ -153,15 +166,20 @@ export default {
     },
     nodePointerDown (key) {
       this.emit('dragStart', [event, key])
+      this.key = key
       this.dragging = true
-      this.timer = setTimeout(() => {
-        this.unPinNode(this.nodes[key])
-      }, 1000)
+      this.timer = setTimeout(()=>{
+        if(!this.moving){
+          this.unPinNode(this.nodes[key])
+        }
+      }, WAITING_TIME)
     },
     nodePointerUp () {
       this.emit('dragEnd', [event])
       this.dragging = false
-      clearTimeout(this.timer)
+      if (this.timer) {
+        clearTimeout(this.timer)
+      }
     },
     pinNode (node) {
       node.pinned = true
