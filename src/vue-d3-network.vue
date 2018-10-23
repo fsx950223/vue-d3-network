@@ -56,7 +56,7 @@ export default {
   },
   data () {
     return {
-      moving:false,
+      moving: false,
       canvas: false,
       nodes: [],
       links: [],
@@ -207,6 +207,9 @@ export default {
     }
   },
   methods: {
+    dblClick(event,node){
+      this.$emit('node-dblclick', event, node)
+    },
     updateNodeSvg () {
       let svg = null
       if (this.nodeSym) {
@@ -482,6 +485,7 @@ export default {
 
   .node-label
     fill $dark
+    user-select none
 
   .link-label
     fill $dark

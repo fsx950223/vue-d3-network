@@ -15,7 +15,7 @@
       path(v-for="link in links"
         :d="linkPath(link)"
         :id="link.id"
-        @click='emit("linkClick",[$event,link])'
+        @click.stop='emit("linkClick",[$event,link])'
         :stroke-width='linkWidth'
         :class='linkClass(link.id)'
         :style='linkStyle(link)'
@@ -46,9 +46,9 @@
           :viewBox='svgIcon(node).attrs.viewBox'
           :width='getNodeSize(node, "width")'
           :height='getNodeSize(node, "height")'
-          @click='nodeClick(node)'
+          @click.stop='nodeClick(node)'
           @pointerdown.prevent='nodePointerDown(key)'
-          @dblclick='unPinNode(node)'
+          @dblclick.stop='unPinNode(node),emit("dblClick",[$event,node])'
           :x='node.x - getNodeSize(node, "width") / 2'
           :y='node.y - getNodeSize(node, "height") / 2'
           :style='nodeStyle(node)'
@@ -62,9 +62,9 @@
         circle(v-else
         :key='key'
         :r="getNodeSize(node) / 2"
-        @click='nodeClick(node)'
+        @click.stop='nodeClick(node)'
         @pointerdown.prevent='nodePointerDown(key)'
-        @dblclick='unPinNode(node)'
+        @dblclick.stop='unPinNode(node),emit("dblClick",[$event,node])'
         :cx="node.x"
         :cy="node.y"
         :style='nodeStyle(node)'
@@ -95,7 +95,7 @@ import * as d3Selection from 'd3-selection'
 import * as d3Zoom from 'd3-zoom'
 import { event as currentEvent } from 'd3-selection'
 const d3 = Object.assign({}, d3Selection, d3Zoom)
-const WAITING_TIME=1000
+const WAITING_TIME = 1000
 export default {
   name: 'svg-renderer',
   props: [
@@ -146,16 +146,16 @@ export default {
       clearTimeout(this.timer)
       if (!val) {
         this.timer = setTimeout(() => {
-          if(!this.moving){
+          if (!this.moving) {
             this.unPinNode(this.nodes[this.key])
           }
-        }, WAITING_TIME+5000)
+        }, WAITING_TIME + 5000)
       }
     }
   },
   methods: {
     nodeClick (node) {
-      this.node=node
+      this.node = node
       if (node.pinned) {
         return
       }
@@ -168,9 +168,9 @@ export default {
       this.emit('dragStart', [event, key])
       this.key = key
       this.dragging = true
-      this.timer = setTimeout(()=>{
-        if(!this.moving){
-          this.unPinNode(this.nodes[key])
+      this.timer = setTimeout(() => {
+        if (!this.moving) {
+          this.unPinNode(this.nodes[this.key])
         }
       }, WAITING_TIME)
     },
