@@ -1,12 +1,15 @@
 <script>
+/* eslint import/no-duplicates: "warn" */
 import * as forceSimulation from 'd3-force'
 import * as d3Selection from 'd3-selection'
+import { event as currentEvent } from 'd3-selection'
 import svgRenderer from './components/svgRenderer.vue'
 import canvasRenderer from './components/canvasRenderer.vue'
 import saveImage from './lib/js/saveImage.js'
 import svgExport from './lib/js/svgExport.js'
 import debounce from 'lodash.debounce'
-const d3 = Object.assign({}, forceSimulation, d3Selection)
+import * as d3Zoom from 'd3-zoom'
+const d3 = Object.assign({}, forceSimulation, d3Selection, d3Zoom)
 function reset () {
   this.simulation.stop().alpha(1).nodes(this.nodes)
   if (this.forces.Link) this.simulation.force('link').links(this.links)
@@ -103,7 +106,7 @@ export default {
     }
   },
   render (createElement) {
-    let ref = 'svg'
+    this.ref = 'svg'
     let props = {}
     let renderer = 'svg-renderer'
     let bindProps = [
@@ -132,16 +135,16 @@ export default {
 
     if (this.canvas) {
       renderer = 'canvas-renderer'
-      ref = 'canvas'
+      this.ref = 'canvas'
       props.canvasStyles = this.options.canvasStyles
     }
 
     return createElement('div', {
-      attrs: { class: 'net' },
+      attrs: { class: 'net', id: 'net' },
       on: { 'pointermove': this.move }
     }, [createElement(renderer, {
-      props, ref, on: { action: this.methodCall }
-    })])
+      props, ref: this.ref, on: { action: this.methodCall }
+    }), createElement('div', { attrs: { id: 'menu' } }, [this.$slots.menu])])
   },
   created () {
     this.updateOptions(this.$data, this.options)
@@ -150,6 +153,14 @@ export default {
     this.updateNodeSvg()
   },
   mounted () {
+    const refNode = this.$refs[this.ref].$el
+    this.zoom = d3.zoom().scaleExtent([1 / 2, 4]).on('zoom', () => {
+      for (const selector of [refNode, '#menu']) {
+        d3.select(selector).attr('transform', currentEvent.transform)
+      }
+    })
+    this.d3Node = d3.select('#net')
+    this.d3Node.call(this.zoom).on('dblclick.zoom', null)
     this.onResize()
     this.$nextTick(() => {
       this.animate()
@@ -207,7 +218,7 @@ export default {
     }
   },
   methods: {
-    dblClick(event,node){
+    dblClick (event, node) {
       this.$emit('node-dblclick', event, node)
     },
     updateNodeSvg () {
@@ -380,9 +391,11 @@ export default {
     },
     dragStart (event, nodeKey) {
       this.simulation.stop()
+      this.d3Node.on('.zoom', null)
       this.dragging = (nodeKey === false) ? false : nodeKey
       this.setMouseOffset(event, this.nodes[nodeKey])
       if (this.dragging === false) {
+        this.d3Node.call(this.zoom).on('dblclick.zoom', null)
         this.simulation.alpha(0.1).restart()
         this.setMouseOffset()
       }
@@ -441,54 +454,54 @@ export default {
 <style lang="stylus">
   @import 'lib/styl/vars.styl'
 
-  .net
+  #net
     height 100%
     margin 0
     touch-action: none
 
-  .net-svg
-    // fill: white // background color to export as image
+    .net-svg
+      // fill: white // background color to export as image
 
-  .node
-    stroke alpha($dark, 0.7)
-    stroke-width 3px
-    transition fill 0.5s ease
-    fill $white
+    .node
+      stroke alpha($dark, 0.7)
+      stroke-width 3px
+      transition fill 0.5s ease
+      fill $white
 
-  .node.selected
-    stroke $color2
+    .node.selected
+      stroke $color2
 
-  .node.pinned
-    fill alpha($warn, 1)
+    .node.pinned
+      fill alpha($warn, 1)
 
-  .link
-    stroke alpha($dark, 0.3)
+    .link
+      stroke alpha($dark, 0.3)
 
-  .marker
-    fill alpha($dark, 1)
+    .marker
+      fill alpha($dark, 1)
 
-  .marker.selected
-    fill alpha($color2, 1)
+    .marker.selected
+      fill alpha($color2, 1)
 
-  .node, .link .marker
-    stroke-linecap round
+    .node, .link .marker
+      stroke-linecap round
 
-    &:hover
-      stroke $warn
-      stroke-width 5px
+      &:hover
+        stroke $warn
+        stroke-width 5px
 
-  .link.selected
-    stroke alpha($color2, 0.6)
+    .link.selected
+      stroke alpha($color2, 0.6)
 
-  .curve
-    fill none
+    .curve
+      fill none
 
-  .node-label
-    fill $dark
-    user-select none
+    .node-label
+      fill $dark
+      user-select none
 
-  .link-label
-    fill $dark
-    transform translate(0, -0.5em)
-    text-anchor middle
+    .link-label
+      fill $dark
+      transform translate(0, -0.5em)
+      text-anchor middle
 </style>

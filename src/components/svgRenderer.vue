@@ -89,12 +89,7 @@
       ) {{ node.name }}
 </template>
 <script>
-/* eslint import/no-duplicates: "warn" */
 import svgExport from '../lib/js/svgExport.js'
-import * as d3Selection from 'd3-selection'
-import * as d3Zoom from 'd3-zoom'
-import { event as currentEvent } from 'd3-selection'
-const d3 = Object.assign({}, d3Selection, d3Zoom)
 const WAITING_TIME = 1000
 export default {
   name: 'svg-renderer',
@@ -121,15 +116,6 @@ export default {
       dragging: false
     }
   },
-  mounted () {
-    this.zoom = d3.zoom().scaleExtent([1 / 2, 4]).on('zoom', () => {
-      for (const selector of ['#l-nodes', '#l-links', '#node-labels', '#link-labels']) {
-        d3.select(selector).attr('transform', currentEvent.transform)
-      }
-    })
-    this.selection = d3.select(this.$refs.svg)
-    this.selection.call(this.zoom).on('dblclick.zoom', null)
-  },
   computed: {
     nodeSvg () {
       if (this.nodeSym) {
@@ -139,9 +125,6 @@ export default {
     }
   },
   watch: {
-    dragging (val) {
-      val ? this.selection.on('.zoom', null) : this.selection.call(this.zoom).on('dblclick.zoom', null)
-    },
     moving (val) {
       clearTimeout(this.timer)
       if (!val) {
