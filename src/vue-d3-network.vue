@@ -144,7 +144,7 @@ export default {
       on: { 'pointermove': this.move }
     }, [createElement(renderer, {
       props, ref: this.ref, on: { action: this.methodCall }
-    }), createElement('div', { attrs: { id: 'menu' } }, [this.$slots.menu])])
+    })])
   },
   created () {
     this.updateOptions(this.$data, this.options)
@@ -155,11 +155,11 @@ export default {
   mounted () {
     const refNode = this.$refs[this.ref].$el
     this.zoom = d3.zoom().scaleExtent([1 / 2, 4]).on('zoom', () => {
-      for (const selector of [refNode, '#menu']) {
-        d3.select(selector).attr('transform', currentEvent.transform)
+      for (const selector of ['#l-nodes', '#l-links', '#node-labels', '#link-labels']) { 
+        d3.select(selector).attr('transform', currentEvent.transform) 
       }
     })
-    this.d3Node = d3.select('#net')
+    this.d3Node = d3.select(refNode)
     this.d3Node.call(this.zoom).on('dblclick.zoom', null)
     this.onResize()
     this.$nextTick(() => {
