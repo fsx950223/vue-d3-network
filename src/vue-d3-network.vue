@@ -153,6 +153,7 @@ export default {
     this.updateNodeSvg()
   },
   mounted () {
+    this.onResize()
     const refNode = this.$refs[this.ref].$el
     this.zoom = d3.zoom().scaleExtent([1 / 2, 4]).on('zoom', () => {
       for (const selector of ['#l-nodes', '#l-links', '#node-labels', '#link-labels']) { 
@@ -161,7 +162,6 @@ export default {
     })
     this.d3Node = d3.select(refNode)
     this.d3Node.call(this.zoom).on('dblclick.zoom', null)
-    this.onResize()
     this.$nextTick(() => {
       this.animate()
     })
@@ -248,7 +248,6 @@ export default {
         this.padding.y += vm.$el.offsetTop || 0
         vm = vm.$parent
       }
-      this.animate()
     },
     // -- Data
     updateOptions (source, options) {
